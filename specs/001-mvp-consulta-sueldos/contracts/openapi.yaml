@@ -1,0 +1,249 @@
+openapi: 3.1.0
+info:
+  title: Cuánto Cobran API
+  description: >
+    Public salary consultation API. Serves the single active dataset ingested from
+    Retribuciones.xls. Local deployment only in this increment (no authentication).
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:8080
+paths:
+  /api/v1/health:
+    get:
+      operationId: health
+      summary: Liveness probe
+      responses:
+        "200":
+          description: Server is up
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    const: ok
+
+  /api/v1/salaries:
+    get:
+      operationId: listSalaries
+      summary: List all published salary records (key fields only)
+      description: >
+        Returns every record of the active dataset ordered by sourceRowNumber, with the
+        key fields shown in the app list (FR-009), plus dataset freshness (FR-011).
+        When no dataset has ever been ingested, returns dataset: null and items: [].
+      responses:
+        "200":
+          description: Active dataset listing (possibly empty)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalaryListResponse"
+
+  /api/v1/salaries/{id}:
+    get:
+      operationId: getSalaryDetail
+      summary: Full detail of one salary record (all ingested fields)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Full record detail (FR-010)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalaryDetailResponse"
+        "404":
+          description: >
+            Record does not exist in the active dataset — including records that
+            disappeared after a dataset replacement (FR-013).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: RECORD_NOT_AVAILABLE
+                message: El registro ya no está disponible.
+
+  /api/v1/admin/ingest:
+    post:
+      operationId: ingest
+      summary: Ingest Retribuciones.xls and atomically replace the published dataset
+      description: >
+        Reads the .xls file from the server-configured path (INGEST_FILE_PATH, default:
+        repository-root/Retribuciones.xls), validates rows, and atomically replaces the
+        active dataset (FR-001, FR-005). No authentication — local trusted operator only.
+      responses:
+        "200":
+          description: Ingestion succeeded; report returned (FR-003)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IngestionReport"
+        "404":
+          description: Input file not found at the configured path
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: FILE_NOT_FOUND
+                message: No se encontró Retribuciones.xls en la ruta configurada.
+        "409":
+          description: Another ingestion is already running
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                code: INGESTION_IN_PROGRESS
+                message: Ya hay una ingesta en curso.
+        "422":
+          description: >
+            File is not a readable .xls, or mandatory columns are missing. The
+            previously published dataset remains unchanged (FR-004).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                unreadable:
+                  value:
+                    code: INVALID_FILE
+                    message: El archivo no es un .xls legible.
+                missingColumns:
+                  value:
+                    code: MISSING_REQUIRED_COLUMNS
+                    message: "Faltan columnas obligatorias: cargo, organismo, retribución."
+
+components:
+  schemas:
+    SalaryListResponse:
+      type: object
+      required: [dataset, items]
+      properties:
+        dataset:
+          oneOf:
+            - $ref: "#/components/schemas/DatasetInfo"
+            - type: "null"
+          description: null when no dataset has ever been published (empty state)
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SalaryListItem"
+
+    DatasetInfo:
+      type: object
+      required: [lastUpdated]
+      properties:
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Ingestion timestamp of the active dataset (FR-006, FR-011)
+
+    SalaryListItem:
+      type: object
+      required: [id, positionTitle, institution, salaryAmount]
+      properties:
+        id:
+          type: string
+          format: uuid
+        positionTitle:
+          type: string
+        institution:
+          type: string
+        salaryAmount:
+          type: number
+          description: Annual gross amount in EUR
+
+    SalaryDetailResponse:
+      type: object
+      required: [dataset, record]
+      properties:
+        dataset:
+          $ref: "#/components/schemas/DatasetInfo"
+        record:
+          $ref: "#/components/schemas/SalaryRecordDetail"
+
+    SalaryRecordDetail:
+      allOf:
+        - $ref: "#/components/schemas/SalaryListItem"
+        - type: object
+          required: [sourceRowNumber, extraFields]
+          properties:
+            sourceRowNumber:
+              type: integer
+              minimum: 1
+              description: 1-based data row in the source file (traceability, SC-003)
+            extraFields:
+              type: array
+              description: >
+                All non-mandatory source columns in original file order; labels are the
+                original Spanish headers, values rendered as ingested (FR-010).
+              items:
+                $ref: "#/components/schemas/LabeledValue"
+
+    LabeledValue:
+      type: object
+      required: [label, value]
+      properties:
+        label:
+          type: string
+        value:
+          oneOf:
+            - type: string
+            - type: number
+            - type: "null"
+
+    IngestionReport:
+      type: object
+      required:
+        [datasetId, ingestedAt, rowsRead, recordsPublished, rejectedRows, duplicateRowNumbers]
+      properties:
+        datasetId:
+          type: string
+          format: uuid
+        ingestedAt:
+          type: string
+          format: date-time
+        rowsRead:
+          type: integer
+          description: Data rows found, excluding the header row
+        recordsPublished:
+          type: integer
+        rejectedRows:
+          type: array
+          items:
+            type: object
+            required: [rowNumber, reason]
+            properties:
+              rowNumber:
+                type: integer
+                minimum: 2
+                description: 1-based spreadsheet row (header is row 1)
+              reason:
+                type: string
+                enum: [MISSING_MANDATORY_FIELD, INVALID_SALARY_AMOUNT]
+        duplicateRowNumbers:
+          type: array
+          items:
+            type: integer
+          description: Rows identical to an earlier row; published anyway, flagged here
+
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          enum:
+            [RECORD_NOT_AVAILABLE, FILE_NOT_FOUND, INVALID_FILE,
+             MISSING_REQUIRED_COLUMNS, INGESTION_IN_PROGRESS, INTERNAL_ERROR]
+        message:
+          type: string
+          description: Spanish human-readable message
