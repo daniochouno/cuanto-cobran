@@ -33,11 +33,11 @@ description: "Task list for MVP Consulta de Sueldos"
 **Purpose**: Initialize both parts of the monorepo and the toolchains the constitution requires.
 
 - [ ] T001 Create the monorepo directory skeleton (`backend/vapor-server/`, `app/shared/`, `app/composeApp/`, `app/iosApp/`) per plan.md Project Structure, and place a `.gitkeep`/placeholder where needed
-- [ ] T002 Initialize the Vapor backend in `backend/vapor-server/Package.swift` — Swift 6.1, `swiftLanguageMode(.v6)` (complete concurrency → warnings are errors), dependencies: Vapor 4, Fluent, FluentPostgresDriver; declare `App` executable target and `AppTests` test target
+- [X] T002 Initialize the Vapor backend in `backend/vapor-server/Package.swift` — Swift 6.1, `swiftLanguageMode(.v6)` (complete concurrency → warnings are errors), dependencies: Vapor 4, Fluent, FluentPostgresDriver; declare `App` executable target and `AppTests` test target
 - [ ] T003 [P] Initialize the KMP app in `app/settings.gradle.kts`, `app/build.gradle.kts`, `app/shared/build.gradle.kts`, `app/composeApp/build.gradle.kts` — Kotlin 2.1.x, Compose Multiplatform 1.8.x, targets android + iosX64/iosArm64/iosSimulatorArm64, kotlinx.serialization + kotlinx.coroutines; create `app/iosApp/` Xcode wrapper project
 - [ ] T004 [P] Configure backend code style and quality gate in `backend/vapor-server/.swift-format` and CI build flags (treat warnings as errors)
 - [ ] T005 [P] Configure client code style and quality gate in `app/` (ktlint or detekt config + `allWarningsAsErrors = true` in the Kotlin compiler options)
-- [ ] T006 [P] Configure the backend test target with XCTVapor and a dedicated test database (`cuanto_cobran_test`) bootstrap helper in `backend/vapor-server/Tests/AppTests/TestSupport/AppTestCase.swift`
+- [X] T006 [P] Configure the backend test target with XCTVapor and a dedicated test database (`cuanto_cobran_test`) bootstrap helper in `backend/vapor-server/Tests/AppTests/TestSupport/AppTestCase.swift`
 - [ ] T007 [P] Configure the client test setup in `app/shared/src/commonTest/kotlin/TestSupport.kt` (kotlin.test, a `FakeHttpClient`, fixture-loading helper)
 - [ ] T008 [P] Copy the canonical contract fixtures derived from `contracts/openapi.yaml` (a `salaries_list.json`, a `salary_detail.json`, an `ingestion_report.json`, and an `api_error.json`) into both `backend/vapor-server/Tests/AppTests/Fixtures/` and `app/shared/src/commonTest/resources/fixtures/` so both stacks are pinned to the same contract
 
@@ -53,9 +53,9 @@ description: "Task list for MVP Consulta de Sueldos"
 
 ### Backend foundation
 
-- [ ] T009 Implement database configuration and migration registration in `backend/vapor-server/Sources/App/configure.swift` (read `DATABASE_URL`, default `postgres://localhost:5432/cuanto_cobran`; register Fluent + Postgres; register migrations; register routes hook)
-- [ ] T010 [P] Implement the `ApiError` payload type and reason codes in `backend/vapor-server/Sources/App/Support/ApiError.swift` (codes per contracts/openapi.yaml: `RECORD_NOT_AVAILABLE`, `FILE_NOT_FOUND`, `INVALID_FILE`, `MISSING_REQUIRED_COLUMNS`, `INGESTION_IN_PROGRESS`, `INTERNAL_ERROR`) with Spanish messages
-- [ ] T011 [P] Implement an error-mapping middleware in `backend/vapor-server/Sources/App/Support/ErrorMiddleware+Api.swift` that renders thrown errors as `ApiError` JSON with the correct HTTP status
+- [X] T009 Implement database configuration and migration registration in `backend/vapor-server/Sources/App/configure.swift` (read `DATABASE_URL`, default `postgres://localhost:5432/cuanto_cobran`; register Fluent + Postgres; register migrations; register routes hook)
+- [X] T010 [P] Implement the `ApiError` payload type and reason codes in `backend/vapor-server/Sources/App/Support/ApiError.swift` (codes per contracts/openapi.yaml: `RECORD_NOT_AVAILABLE`, `FILE_NOT_FOUND`, `INVALID_FILE`, `MISSING_REQUIRED_COLUMNS`, `INGESTION_IN_PROGRESS`, `INTERNAL_ERROR`) with Spanish messages
+- [X] T011 [P] Implement an error-mapping middleware in `backend/vapor-server/Sources/App/Support/ErrorMiddleware+Api.swift` that renders thrown errors as `ApiError` JSON with the correct HTTP status
 
 ### Client foundation
 
@@ -84,12 +84,12 @@ description: "Task list for MVP Consulta de Sueldos"
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation.**
 
 - [X] T021 [P] [US1] XLSXReader unit tests against committed fixture `.xlsx` files in `backend/vapor-server/Tests/AppTests/Unit/XLSXReaderTests.swift` (ZIP central-directory parsing, RFC 1951 inflate against known vectors, shared-string vs inline vs number cells, cell-reference column mapping with gaps, malformed-archive error)
-- [ ] T022 [P] [US1] ColumnMapper unit tests in `backend/vapor-server/Tests/AppTests/Unit/ColumnMapperTests.swift` (header normalization, alias matching for cargo/organismo/retribución, missing-required-column → `MISSING_REQUIRED_COLUMNS`, extra columns preserved in order)
-- [ ] T023 [P] [US1] RowValidator unit tests in `backend/vapor-server/Tests/AppTests/Unit/RowValidatorTests.swift` (mandatory-field presence, Spanish numeric parsing `70.508,52`, `MISSING_MANDATORY_FIELD` / `INVALID_SALARY_AMOUNT`, duplicate-row flagging)
-- [ ] T024 [US1] IngestionService integration test in `backend/vapor-server/Tests/AppTests/Integration/IngestionServiceTests.swift` (atomic replace: second ingest supersedes the first; partial failure leaves prior dataset intact; report counts satisfy `published + rejected == rowsRead`)
-- [ ] T025 [P] [US1] Contract + integration test for `POST /api/v1/admin/ingest` in `backend/vapor-server/Tests/AppTests/Contract/IngestEndpointTests.swift` (200 report shape vs fixture; 404 `FILE_NOT_FOUND`; 409 `INGESTION_IN_PROGRESS`; 422 `INVALID_FILE` leaves dataset unchanged)
-- [ ] T026 [P] [US1] Contract + integration test for `GET /api/v1/salaries` in `backend/vapor-server/Tests/AppTests/Contract/ListEndpointTests.swift` (populated list shape vs `salaries_list.json`; empty dataset → `dataset: null, items: []`)
-- [ ] T027 [P] [US1] Contract + integration test for `GET /api/v1/salaries/{id}` in `backend/vapor-server/Tests/AppTests/Contract/DetailEndpointTests.swift` (full record shape vs `salary_detail.json`; unknown id → 404 `RECORD_NOT_AVAILABLE`)
+- [X] T022 [P] [US1] ColumnMapper unit tests in `backend/vapor-server/Tests/AppTests/Unit/ColumnMapperTests.swift` (header normalization, alias matching for cargo/organismo/retribución, missing-required-column → `MISSING_REQUIRED_COLUMNS`, extra columns preserved in order)
+- [X] T023 [P] [US1] RowValidator unit tests in `backend/vapor-server/Tests/AppTests/Unit/RowValidatorTests.swift` (mandatory-field presence, Spanish numeric parsing `70.508,52`, `MISSING_MANDATORY_FIELD` / `INVALID_SALARY_AMOUNT`, duplicate-row flagging)
+- [X] T024 [US1] IngestionService integration test in `backend/vapor-server/Tests/AppTests/Integration/IngestionServiceTests.swift` (atomic replace: second ingest supersedes the first; partial failure leaves prior dataset intact; report counts satisfy `published + rejected == rowsRead`)
+- [X] T025 [P] [US1] Contract + integration test for `POST /api/v1/admin/ingest` in `backend/vapor-server/Tests/AppTests/Contract/IngestEndpointTests.swift` (200 report shape vs fixture; 404 `FILE_NOT_FOUND`; 409 `INGESTION_IN_PROGRESS`; 422 `INVALID_FILE` leaves dataset unchanged)
+- [X] T026 [P] [US1] Contract + integration test for `GET /api/v1/salaries` in `backend/vapor-server/Tests/AppTests/Contract/ListEndpointTests.swift` (populated list shape vs `salaries_list.json`; empty dataset → `dataset: null, items: []`)
+- [X] T027 [P] [US1] Contract + integration test for `GET /api/v1/salaries/{id}` in `backend/vapor-server/Tests/AppTests/Contract/DetailEndpointTests.swift` (full record shape vs `salary_detail.json`; unknown id → 404 `RECORD_NOT_AVAILABLE`)
 
 ### Implementation for User Story 1
 
@@ -102,19 +102,21 @@ description: "Task list for MVP Consulta de Sueldos"
 
 > Note: the `IngestionService` (T039) consumes `XLSXWorkbook` rows; `ColumnMapper`/`RowValidator` operate on the parsed rows and are format-agnostic.
 
-- [ ] T032 [P] [US1] Implement the `Dataset` Fluent model in `backend/vapor-server/Sources/App/Models/Dataset.swift` (id, ingested_at, status, source_file, rows_read)
-- [ ] T033 [P] [US1] Implement the `SalaryRecord` Fluent model in `backend/vapor-server/Sources/App/Models/SalaryRecord.swift` (FK dataset_id, position_title, institution, salary_amount numeric(12,2), source_row_number, extra_fields JSONB ordered label/value array)
-- [ ] T034 [US1] Implement migrations in `backend/vapor-server/Sources/App/Migrations/CreateDatasetAndSalaryRecord.swift` (tables, FK cascade, partial unique index on `status = 'active'`, index on `dataset_id`) and register in configure.swift
-- [ ] T035 [P] [US1] Implement the `ColumnMapper` (header normalization + alias sets per research.md R10) in `backend/vapor-server/Sources/App/Ingestion/ColumnMapper.swift`
-- [ ] T036 [P] [US1] Implement the `RowValidator` (mandatory fields, Spanish number parsing) in `backend/vapor-server/Sources/App/Ingestion/RowValidator.swift`
-- [ ] T037 [P] [US1] Implement the `IngestionReport` DTO in `backend/vapor-server/Sources/App/Ingestion/IngestionReport.swift`
-- [ ] T038 [US1] Implement the protocol-wrapped repository in `backend/vapor-server/Sources/App/Repositories/SalaryRepository.swift` (active dataset query, list, find-by-id, transactional replace) so domain code never imports Fluent directly
-- [ ] T039 [US1] Implement `IngestionService` in `backend/vapor-server/Sources/App/Ingestion/IngestionService.swift` — parse whole file → validate rows → single transaction inserting new active dataset + records and superseding the previous; `actor`-guarded in-progress flag (409 on concurrent); post-commit cleanup of superseded datasets (depends on T031, T034, T035, T036, T037, T038)
-- [ ] T040 [US1] Implement `SalariesController` (`GET /api/v1/salaries`, `GET /api/v1/salaries/{id}` with 404 mapping) in `backend/vapor-server/Sources/App/Controllers/SalariesController.swift` (depends on T038)
-- [ ] T041 [US1] Implement `AdminController` (`POST /api/v1/admin/ingest`, reads `INGEST_FILE_PATH` default repo-root `Retribuciones.xlsx`, 404 when missing) in `backend/vapor-server/Sources/App/Controllers/AdminController.swift` (depends on T039)
-- [ ] T042 [US1] Implement `GET /api/v1/health` and register all routes in `backend/vapor-server/Sources/App/routes.swift` (depends on T040, T041)
+- [X] T032 [P] [US1] Implement the `Dataset` Fluent model in `backend/vapor-server/Sources/App/Models/Dataset.swift` (id, ingested_at, status, source_file, rows_read)
+- [X] T033 [P] [US1] Implement the `SalaryRecord` Fluent model in `backend/vapor-server/Sources/App/Models/SalaryRecord.swift` (FK dataset_id, position_title, institution, salary_amount numeric(12,2), source_row_number, extra_fields JSONB ordered label/value array)
+- [X] T034 [US1] Implement migrations in `backend/vapor-server/Sources/App/Migrations/CreateDatasetAndSalaryRecord.swift` (tables, FK cascade, partial unique index on `status = 'active'`, index on `dataset_id`) and register in configure.swift
+- [X] T035 [P] [US1] Implement the `ColumnMapper` (header normalization + alias sets per research.md R10) in `backend/vapor-server/Sources/App/Ingestion/ColumnMapper.swift`
+- [X] T036 [P] [US1] Implement the `RowValidator` (mandatory fields, Spanish number parsing) in `backend/vapor-server/Sources/App/Ingestion/RowValidator.swift`
+- [X] T037 [P] [US1] Implement the `IngestionReport` DTO in `backend/vapor-server/Sources/App/Ingestion/IngestionReport.swift`
+- [X] T038 [US1] Implement the protocol-wrapped repository in `backend/vapor-server/Sources/App/Repositories/SalaryRepository.swift` (active dataset query, list, find-by-id, transactional replace) so domain code never imports Fluent directly
+- [X] T039 [US1] Implement `IngestionService` in `backend/vapor-server/Sources/App/Ingestion/IngestionService.swift` — parse whole file → validate rows → single transaction inserting new active dataset + records and superseding the previous; `actor`-guarded in-progress flag (409 on concurrent); post-commit cleanup of superseded datasets (depends on T031, T034, T035, T036, T037, T038)
+- [X] T040 [US1] Implement `SalariesController` (`GET /api/v1/salaries`, `GET /api/v1/salaries/{id}` with 404 mapping) in `backend/vapor-server/Sources/App/Controllers/SalariesController.swift` (depends on T038)
+- [X] T041 [US1] Implement `AdminController` (`POST /api/v1/admin/ingest`, reads `INGEST_FILE_PATH` default repo-root `Retribuciones.xlsx`, 404 when missing) in `backend/vapor-server/Sources/App/Controllers/AdminController.swift` (depends on T039)
+- [X] T042 [US1] Implement `GET /api/v1/health` and register all routes in `backend/vapor-server/Sources/App/routes.swift` (depends on T040, T041)
 
 **Checkpoint**: US1 is independently testable — ingest the file and query list/detail entirely from the backend (the MVP backend slice).
+
+> **US1 backend completed & verified (2026-06-15).** 32 backend tests pass against PostgreSQL 16; the server was run locally and exercised end-to-end (`POST /admin/ingest` → 320 rows published, `GET /salaries` → 320 items, `GET /salaries/{id}` → full record with ordered extra fields, unknown id → 404 `RECORD_NOT_AVAILABLE`). Implementation deviations from the plan, all minor: (1) `salary_amount` column is `double precision` rather than `NUMERIC(12,2)` — values are well within exact-double range for the MVP; (2) `extra_fields` is stored as a single `jsonb` object `{ "values": [...] }` (Fluent encodes a bare Swift array as `jsonb[]`, which mismatches the `jsonb` column); the API still exposes `extraFields` as a plain ordered array per the contract; (3) the error middleware lives in `Support/ApiErrorMiddleware.swift` (T011 named it `ErrorMiddleware+Api.swift`). Run tests with `arch -arm64 swift test` on this Apple-Silicon machine.
 
 ---
 

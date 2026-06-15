@@ -7,7 +7,7 @@
 .build/
 .swiftpm/
 DerivedData/
-Package.resolved
+# Package.resolved IS committed for the app (reproducible dependency versions)
 
 # Kotlin / Gradle (app) — added ahead of client implementation
 build/
