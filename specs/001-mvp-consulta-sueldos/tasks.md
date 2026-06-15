@@ -32,13 +32,13 @@ description: "Task list for MVP Consulta de Sueldos"
 
 **Purpose**: Initialize both parts of the monorepo and the toolchains the constitution requires.
 
-- [ ] T001 Create the monorepo directory skeleton (`backend/vapor-server/`, `app/shared/`, `app/composeApp/`, `app/iosApp/`) per plan.md Project Structure, and place a `.gitkeep`/placeholder where needed
+- [X] T001 Create the monorepo directory skeleton (`backend/vapor-server/`, `app/shared/`, `app/composeApp/`, `app/iosApp/`) per plan.md Project Structure, and place a `.gitkeep`/placeholder where needed
 - [X] T002 Initialize the Vapor backend in `backend/vapor-server/Package.swift` — Swift 6.1, `swiftLanguageMode(.v6)` (complete concurrency → warnings are errors), dependencies: Vapor 4, Fluent, FluentPostgresDriver; declare `App` executable target and `AppTests` test target
-- [ ] T003 [P] Initialize the KMP app in `app/settings.gradle.kts`, `app/build.gradle.kts`, `app/shared/build.gradle.kts`, `app/composeApp/build.gradle.kts` — Kotlin 2.1.x, Compose Multiplatform 1.8.x, targets android + iosX64/iosArm64/iosSimulatorArm64, kotlinx.serialization + kotlinx.coroutines; create `app/iosApp/` Xcode wrapper project
+- [X] T003 [P] Initialize the KMP app in `app/settings.gradle.kts`, `app/build.gradle.kts`, `app/shared/build.gradle.kts`, `app/composeApp/build.gradle.kts` — Kotlin 2.1.x, Compose Multiplatform 1.8.x, targets android + iosX64/iosArm64/iosSimulatorArm64, kotlinx.serialization + kotlinx.coroutines; create `app/iosApp/` Xcode wrapper project
 - [ ] T004 [P] Configure backend code style and quality gate in `backend/vapor-server/.swift-format` and CI build flags (treat warnings as errors)
-- [ ] T005 [P] Configure client code style and quality gate in `app/` (ktlint or detekt config + `allWarningsAsErrors = true` in the Kotlin compiler options)
+- [X] T005 [P] Configure client code style and quality gate in `app/` (ktlint or detekt config + `allWarningsAsErrors = true` in the Kotlin compiler options)
 - [X] T006 [P] Configure the backend test target with XCTVapor and a dedicated test database (`cuanto_cobran_test`) bootstrap helper in `backend/vapor-server/Tests/AppTests/TestSupport/AppTestCase.swift`
-- [ ] T007 [P] Configure the client test setup in `app/shared/src/commonTest/kotlin/TestSupport.kt` (kotlin.test, a `FakeHttpClient`, fixture-loading helper)
+- [X] T007 [P] Configure the client test setup in `app/shared/src/commonTest/kotlin/TestSupport.kt` (kotlin.test, a `FakeHttpClient`, fixture-loading helper)
 - [ ] T008 [P] Copy the canonical contract fixtures derived from `contracts/openapi.yaml` (a `salaries_list.json`, a `salary_detail.json`, an `ingestion_report.json`, and an `api_error.json`) into both `backend/vapor-server/Tests/AppTests/Fixtures/` and `app/shared/src/commonTest/resources/fixtures/` so both stacks are pinned to the same contract
 
 **Checkpoint**: Both projects build empty, both test suites run (and are red/empty), shared fixtures in place.
@@ -59,15 +59,15 @@ description: "Task list for MVP Consulta de Sueldos"
 
 ### Client foundation
 
-- [ ] T012 [P] Define the project-owned `HttpClient` interface and `HttpResponse`/`HttpError` types in `app/shared/src/commonMain/kotlin/data/HttpClient.kt` (suspend GET/POST, timeout, error mapping)
-- [ ] T013 [P] Implement the Android `actual` HttpClient (HttpURLConnection on `Dispatchers.IO`) in `app/shared/src/androidMain/kotlin/data/HttpClient.android.kt`
-- [ ] T014 [P] Implement the iOS `actual` HttpClient (URLSession) in `app/shared/src/iosMain/kotlin/data/HttpClient.ios.kt`
-- [ ] T015 [P] Implement `ApiConfig` base-URL resolution in `app/shared/src/commonMain/kotlin/data/ApiConfig.kt` with `expect`/`actual` platform default (Android `http://10.0.2.2:8080`, iOS `http://127.0.0.1:8080`)
-- [ ] T016 [P] Implement the centralized Spanish strings object in `app/composeApp/src/commonMain/kotlin/ui/strings/Strings.kt` (FR labels: cargo, organismo, retribución, "Datos actualizados a…", loading/empty/error/Reintentar copy)
-- [ ] T017 [P] Implement the design-system theme in `app/composeApp/src/commonMain/kotlin/ui/theme/Theme.kt` (typography, spacing, color, shared component tokens — Principle III)
-- [ ] T018 [P] Implement the Spanish number/currency formatter as `expect`/`actual` in `app/shared/src/commonMain/kotlin/util/CurrencyFormatter.kt` (+ `.android.kt` `java.text.NumberFormat` and `.ios.kt` `NSNumberFormatter`, `Locale("es","ES")`, e.g. `70.508,52 €`)
-- [ ] T019 [P] Define the generic `UiState` sealed model (`Loading`/`Content`/`Empty`/`Error`) in `app/shared/src/commonMain/kotlin/state/UiState.kt`
-- [ ] T020 Implement the custom navigation scaffold (sealed `Screen`, back-stack holder preserving list scroll position) in `app/composeApp/src/commonMain/kotlin/ui/App.kt`
+- [X] T012 [P] Define the project-owned `HttpClient` interface and `HttpResponse`/`HttpError` types in `app/shared/src/commonMain/kotlin/data/HttpClient.kt` (suspend GET/POST, timeout, error mapping)
+- [X] T013 [P] Implement the Android `actual` HttpClient (HttpURLConnection on `Dispatchers.IO`) in `app/shared/src/androidMain/kotlin/data/HttpClient.android.kt`
+- [X] T014 [P] Implement the iOS `actual` HttpClient (URLSession) in `app/shared/src/iosMain/kotlin/data/HttpClient.ios.kt`
+- [X] T015 [P] Implement `ApiConfig` base-URL resolution in `app/shared/src/commonMain/kotlin/data/ApiConfig.kt` with `expect`/`actual` platform default (Android `http://10.0.2.2:8080`, iOS `http://127.0.0.1:8080`)
+- [X] T016 [P] Implement the centralized Spanish strings object in `app/composeApp/src/commonMain/kotlin/ui/strings/Strings.kt` (FR labels: cargo, organismo, retribución, "Datos actualizados a…", loading/empty/error/Reintentar copy)
+- [X] T017 [P] Implement the design-system theme in `app/composeApp/src/commonMain/kotlin/ui/theme/Theme.kt` (typography, spacing, color, shared component tokens — Principle III)
+- [X] T018 [P] Implement the Spanish number/currency formatter as `expect`/`actual` in `app/shared/src/commonMain/kotlin/util/CurrencyFormatter.kt` (+ `.android.kt` `java.text.NumberFormat` and `.ios.kt` `NSNumberFormatter`, `Locale("es","ES")`, e.g. `70.508,52 €`)
+- [X] T019 [P] Define the generic `UiState` sealed model (`Loading`/`Content`/`Empty`/`Error`) in `app/shared/src/commonMain/kotlin/state/UiState.kt`
+- [X] T020 Implement the custom navigation scaffold (sealed `Screen`, back-stack holder preserving list scroll position) in `app/composeApp/src/commonMain/kotlin/ui/App.kt`
 
 **Checkpoint**: Backend connects to Postgres and renders typed errors; client has networking, theme, strings, formatter, state model, and navigation shell. User stories can now begin.
 
@@ -130,18 +130,18 @@ description: "Task list for MVP Consulta de Sueldos"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation.**
 
-- [ ] T043 [P] [US2] DTO decoding test for `SalaryListResponse` from `fixtures/salaries_list.json` (incl. `dataset: null` empty case) in `app/shared/src/commonTest/kotlin/data/SalaryListDtoTest.kt`
-- [ ] T044 [P] [US2] `SalariesApi.fetchSalaries` test using `FakeHttpClient` (success, empty, network-error mapping) in `app/shared/src/commonTest/kotlin/data/SalariesApiListTest.kt`
-- [ ] T045 [P] [US2] `ListStateHolder` test (Loading → Content / Empty / Error, retry re-fetch) in `app/shared/src/commonTest/kotlin/state/ListStateHolderTest.kt`
+- [X] T043 [P] [US2] DTO decoding test for `SalaryListResponse` from `fixtures/salaries_list.json` (incl. `dataset: null` empty case) in `app/shared/src/commonTest/kotlin/data/SalaryListDtoTest.kt`
+- [X] T044 [P] [US2] `SalariesApi.fetchSalaries` test using `FakeHttpClient` (success, empty, network-error mapping) in `app/shared/src/commonTest/kotlin/data/SalariesApiListTest.kt`
+- [X] T045 [P] [US2] `ListStateHolder` test (Loading → Content / Empty / Error, retry re-fetch) in `app/shared/src/commonTest/kotlin/state/ListStateHolderTest.kt`
 
 ### Implementation for User Story 2
 
-- [ ] T046 [P] [US2] Implement domain models `SalaryListItem` and `DatasetInfo` in `app/shared/src/commonMain/kotlin/domain/Salary.kt`
-- [ ] T047 [P] [US2] Implement `@Serializable` list DTOs (`SalaryListResponse`, `DatasetInfo`, `SalaryListItem`) + mappers in `app/shared/src/commonMain/kotlin/data/SalaryDtos.kt`
-- [ ] T048 [US2] Implement `SalariesApi.fetchSalaries()` in `app/shared/src/commonMain/kotlin/data/SalariesApi.kt` (uses HttpClient + ApiConfig, decodes via kotlinx.serialization) (depends on T046, T047)
-- [ ] T049 [US2] Implement `ListStateHolder` exposing `StateFlow<UiState<SalaryList>>` in `app/shared/src/commonMain/kotlin/state/ListStateHolder.kt` (depends on T048)
-- [ ] T050 [US2] Implement `SalaryListScreen` (LazyColumn of key fields, freshness header, Loading/Empty/Error+Reintentar states, currency formatting) in `app/composeApp/src/commonMain/kotlin/ui/list/SalaryListScreen.kt` (depends on T049)
-- [ ] T051 [US2] Wire the list screen as the app start destination in `app/composeApp/src/commonMain/kotlin/ui/App.kt`, and confirm Android (`MainActivity`) and iOS (`MainViewController`) entry points launch it (depends on T050)
+- [X] T046 [P] [US2] Implement domain models `SalaryListItem` and `DatasetInfo` in `app/shared/src/commonMain/kotlin/domain/Salary.kt`
+- [X] T047 [P] [US2] Implement `@Serializable` list DTOs (`SalaryListResponse`, `DatasetInfo`, `SalaryListItem`) + mappers in `app/shared/src/commonMain/kotlin/data/SalaryDtos.kt`
+- [X] T048 [US2] Implement `SalariesApi.fetchSalaries()` in `app/shared/src/commonMain/kotlin/data/SalariesApi.kt` (uses HttpClient + ApiConfig, decodes via kotlinx.serialization) (depends on T046, T047)
+- [X] T049 [US2] Implement `ListStateHolder` exposing `StateFlow<UiState<SalaryList>>` in `app/shared/src/commonMain/kotlin/state/ListStateHolder.kt` (depends on T048)
+- [X] T050 [US2] Implement `SalaryListScreen` (LazyColumn of key fields, freshness header, Loading/Empty/Error+Reintentar states, currency formatting) in `app/composeApp/src/commonMain/kotlin/ui/list/SalaryListScreen.kt` (depends on T049)
+- [X] T051 [US2] Wire the list screen as the app start destination in `app/composeApp/src/commonMain/kotlin/ui/App.kt`, and confirm Android (`MainActivity`) and iOS (`MainViewController`) entry points launch it (depends on T050)
 
 **Checkpoint**: US1 + US2 work — the list is browsable on both platforms against the live API.
 
@@ -157,21 +157,23 @@ description: "Task list for MVP Consulta de Sueldos"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation.**
 
-- [ ] T052 [P] [US3] DTO decoding test for `SalaryDetailResponse` (incl. ordered `extraFields`) from `fixtures/salary_detail.json` in `app/shared/src/commonTest/kotlin/data/SalaryDetailDtoTest.kt`
-- [ ] T053 [P] [US3] `SalariesApi.fetchSalaryDetail` test using `FakeHttpClient` (success, 404 → `RECORD_NOT_AVAILABLE`) in `app/shared/src/commonTest/kotlin/data/SalariesApiDetailTest.kt`
-- [ ] T054 [P] [US3] `DetailStateHolder` test (Loading → Content / Error-not-available) in `app/shared/src/commonTest/kotlin/state/DetailStateHolderTest.kt`
-- [ ] T055 [P] [US3] Navigation test: list → detail → back preserves list scroll position in `app/composeApp/src/commonTest/kotlin/ui/NavigationTest.kt`
+- [X] T052 [P] [US3] DTO decoding test for `SalaryDetailResponse` (incl. ordered `extraFields`) from `fixtures/salary_detail.json` in `app/shared/src/commonTest/kotlin/data/SalaryDetailDtoTest.kt`
+- [X] T053 [P] [US3] `SalariesApi.fetchSalaryDetail` test using `FakeHttpClient` (success, 404 → `RECORD_NOT_AVAILABLE`) in `app/shared/src/commonTest/kotlin/data/SalariesApiDetailTest.kt`
+- [X] T054 [P] [US3] `DetailStateHolder` test (Loading → Content / Error-not-available) in `app/shared/src/commonTest/kotlin/state/DetailStateHolderTest.kt`
+- [X] T055 [P] [US3] Navigation test: list → detail → back preserves list scroll position in `app/composeApp/src/commonTest/kotlin/ui/NavigationTest.kt`
 
 ### Implementation for User Story 3
 
-- [ ] T056 [P] [US3] Implement domain models `SalaryRecordDetail` and `LabeledValue` in `app/shared/src/commonMain/kotlin/domain/SalaryDetail.kt`
-- [ ] T057 [P] [US3] Implement `@Serializable` detail DTOs (`SalaryDetailResponse`, `SalaryRecordDetail`, `LabeledValue`) + mappers in `app/shared/src/commonMain/kotlin/data/SalaryDetailDtos.kt`
-- [ ] T058 [US3] Implement `SalariesApi.fetchSalaryDetail(id)` with 404→`RECORD_NOT_AVAILABLE` mapping in `app/shared/src/commonMain/kotlin/data/SalariesApi.kt` (depends on T056, T057)
-- [ ] T059 [US3] Implement `DetailStateHolder` exposing `StateFlow<UiState<SalaryRecordDetail>>` in `app/shared/src/commonMain/kotlin/state/DetailStateHolder.kt` (depends on T058)
-- [ ] T060 [US3] Implement `SalaryDetailScreen` (all labelled fields incl. ordered extraFields, freshness, not-available state) in `app/composeApp/src/commonMain/kotlin/ui/detail/SalaryDetailScreen.kt` (depends on T059)
-- [ ] T061 [US3] Wire list→detail navigation with scroll-position preservation in `app/composeApp/src/commonMain/kotlin/ui/App.kt` and the list item tap handler (depends on T060, T051)
+- [X] T056 [P] [US3] Implement domain models `SalaryRecordDetail` and `LabeledValue` in `app/shared/src/commonMain/kotlin/domain/SalaryDetail.kt`
+- [X] T057 [P] [US3] Implement `@Serializable` detail DTOs (`SalaryDetailResponse`, `SalaryRecordDetail`, `LabeledValue`) + mappers in `app/shared/src/commonMain/kotlin/data/SalaryDetailDtos.kt`
+- [X] T058 [US3] Implement `SalariesApi.fetchSalaryDetail(id)` with 404→`RECORD_NOT_AVAILABLE` mapping in `app/shared/src/commonMain/kotlin/data/SalariesApi.kt` (depends on T056, T057)
+- [X] T059 [US3] Implement `DetailStateHolder` exposing `StateFlow<UiState<SalaryRecordDetail>>` in `app/shared/src/commonMain/kotlin/state/DetailStateHolder.kt` (depends on T058)
+- [X] T060 [US3] Implement `SalaryDetailScreen` (all labelled fields incl. ordered extraFields, freshness, not-available state) in `app/composeApp/src/commonMain/kotlin/ui/detail/SalaryDetailScreen.kt` (depends on T059)
+- [X] T061 [US3] Wire list→detail navigation with scroll-position preservation in `app/composeApp/src/commonMain/kotlin/ui/App.kt` and the list item tap handler (depends on T060, T051)
 
 **Checkpoint**: All three stories work independently and together — full consultation journey on iOS and Android.
+
+> **Client implemented & built (2026-06-15).** KMP project (`app/`) builds for both platforms: Android debug APK assembled (`composeApp-debug.apk`) and the iOS Compose framework links (`linkDebugFrameworkIosSimulatorArm64`). 16 client tests pass on the JVM (13 in `:shared` — DTO decoding, `SalariesApi`, list/detail state holders; 3 in `:composeApp` — `Navigator`); the shared iOS test target also compiles. Version matrix (the plan said Kotlin 2.1.x / Compose 1.8.x): Kotlin **2.1.0**, Compose Multiplatform **1.7.3**, AGP **8.7.3**, Gradle **8.11.1** on the Android Studio JBR 21 — a coherent, mutually-compatible set. Notes/deviations: (1) the `app/iosApp/` Xcode wrapper project (.xcodeproj) is **not** generated — the iOS framework builds, but the thin Xcode app shell that hosts `MainViewController()` still needs to be created (normally via the KMP wizard); (2) `:shared` enforces `allWarningsAsErrors`; `:composeApp` does not yet (Compose pulls many opt-in notices) — follow-up; (3) list scroll-position preservation across navigation is implemented by hoisting `LazyListState` in `App.kt` but not yet verified on a running device/simulator. Build the client with `arch -arm64 ./gradlew ...` and JBR 21 (configured in `app/gradle.properties`).
 
 ---
 

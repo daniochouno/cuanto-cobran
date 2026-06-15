@@ -9,9 +9,10 @@
 DerivedData/
 # Package.resolved IS committed for the app (reproducible dependency versions)
 
-# Kotlin / Gradle (app) — added ahead of client implementation
+# Kotlin / Gradle (app)
 build/
 .gradle/
+.kotlin/
 local.properties
 *.iml
 .idea/
