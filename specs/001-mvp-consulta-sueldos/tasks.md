@@ -83,7 +83,7 @@ description: "Task list for MVP Consulta de Sueldos"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation.**
 
-- [ ] T021 [P] [US1] XLSXReader unit tests against committed fixture `.xlsx` files in `backend/vapor-server/Tests/AppTests/Unit/XLSXReaderTests.swift` (ZIP central-directory parsing, RFC 1951 inflate against known vectors, shared-string vs inline vs number cells, cell-reference column mapping with gaps, malformed-archive error)
+- [X] T021 [P] [US1] XLSXReader unit tests against committed fixture `.xlsx` files in `backend/vapor-server/Tests/AppTests/Unit/XLSXReaderTests.swift` (ZIP central-directory parsing, RFC 1951 inflate against known vectors, shared-string vs inline vs number cells, cell-reference column mapping with gaps, malformed-archive error)
 - [ ] T022 [P] [US1] ColumnMapper unit tests in `backend/vapor-server/Tests/AppTests/Unit/ColumnMapperTests.swift` (header normalization, alias matching for cargo/organismo/retribución, missing-required-column → `MISSING_REQUIRED_COLUMNS`, extra columns preserved in order)
 - [ ] T023 [P] [US1] RowValidator unit tests in `backend/vapor-server/Tests/AppTests/Unit/RowValidatorTests.swift` (mandatory-field presence, Spanish numeric parsing `70.508,52`, `MISSING_MANDATORY_FIELD` / `INVALID_SALARY_AMOUNT`, duplicate-row flagging)
 - [ ] T024 [US1] IngestionService integration test in `backend/vapor-server/Tests/AppTests/Integration/IngestionServiceTests.swift` (atomic replace: second ingest supersedes the first; partial failure leaves prior dataset intact; report counts satisfy `published + rejected == rowsRead`)
@@ -93,10 +93,12 @@ description: "Task list for MVP Consulta de Sueldos"
 
 ### Implementation for User Story 1
 
-- [ ] T028 [P] [US1] Implement the ZIP container reader in `backend/vapor-server/Sources/App/XLSXReader/ZIPArchive.swift` (End of Central Directory + central directory + local file headers; extract entry bytes for stored method 0 and deflated method 8)
-- [ ] T029 [P] [US1] Implement the custom RFC 1951 DEFLATE inflate decoder (fixed + dynamic Huffman) in `backend/vapor-server/Sources/App/XLSXReader/Inflate.swift`
-- [ ] T030 [US1] Implement SpreadsheetML reading (sharedStrings.xml + first worksheet sheetData via Foundation `XMLParser`; resolve shared/inline/number/boolean cells honoring the `r` cell reference) in `backend/vapor-server/Sources/App/XLSXReader/SpreadsheetML.swift` (depends on T028, T029)
-- [ ] T031 [US1] Implement the public `XLSXWorkbook` API returning the first sheet as rows of `XLSXCellValue` plus the header row in `backend/vapor-server/Sources/App/XLSXReader/XLSXWorkbook.swift` (depends on T028, T029, T030)
+- [X] T028 [P] [US1] Implement the ZIP container reader in `backend/vapor-server/Sources/App/XLSXReader/ZIPArchive.swift` (End of Central Directory + central directory + local file headers; extract entry bytes for stored method 0 and deflated method 8)
+- [X] T029 [P] [US1] Implement the custom RFC 1951 DEFLATE inflate decoder (fixed + dynamic Huffman) in `backend/vapor-server/Sources/App/XLSXReader/Inflate.swift`
+- [X] T030 [US1] Implement SpreadsheetML reading (sharedStrings.xml + first worksheet sheetData via Foundation `XMLParser`; resolve shared/inline/number/boolean cells honoring the `r` cell reference) in `backend/vapor-server/Sources/App/XLSXReader/SpreadsheetML.swift` (depends on T028, T029)
+- [X] T031 [US1] Implement the public `XLSXWorkbook` API returning the first sheet as rows of `XLSXCellValue` plus the header row in `backend/vapor-server/Sources/App/XLSXReader/XLSXWorkbook.swift` (depends on T028, T029, T030)
+
+> Implementation note (T021/T028–T031): `XLSXReader` was built as a standalone, dependency-free SwiftPM **library target** (`backend/vapor-server/Sources/XLSXReader/`, tests in `Tests/XLSXReaderTests/`) rather than under `Sources/App/`, so it builds and tests offline without Vapor/PostgreSQL — realizing the plan's "Vapor-free, unit-testable in isolation" intent. The `App` target will depend on it. 12 tests pass against the real `Retribuciones.xlsx`. On this machine tests must be run with `arch -arm64 swift test` (the default `swift test` selects an x86_64 XCTest loader).
 
 > Note: the `IngestionService` (T039) consumes `XLSXWorkbook` rows; `ColumnMapper`/`RowValidator` operate on the parsed rows and are format-agnostic.
 

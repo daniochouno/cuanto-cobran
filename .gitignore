@@ -1,1 +1,25 @@
 .claude/
+
+# macOS
+.DS_Store
+
+# Swift / SwiftPM (backend/vapor-server)
+.build/
+.swiftpm/
+DerivedData/
+Package.resolved
+
+# Kotlin / Gradle (app) — added ahead of client implementation
+build/
+.gradle/
+local.properties
+*.iml
+.idea/
+
+# Xcode (iosApp)
+xcuserdata/
+*.xcuserstate
+
+# Logs / env
+*.log
+.env*
