@@ -5,38 +5,51 @@
 All NEEDS CLARIFICATION items from the Technical Context are resolved here. Each decision
 follows the constitution's custom-first dependency policy (Principle V).
 
-## R1. Parsing .xls (legacy binary Excel) in Swift
+## R1. Parsing .xlsx (OOXML / SpreadsheetML) in Swift
 
-**Decision**: Implement a custom, minimal `.xls` (BIFF8) reader as a standalone Swift
-module (`XLSReader`) inside the backend package, scoped to exactly what
-`Retribuciones.xls` needs:
+**Decision**: Implement a custom, minimal `.xlsx` (OOXML) reader as a standalone Swift
+module (`XLSXReader`) inside the backend package, scoped to exactly what
+`Retribuciones.xlsx` needs. An `.xlsx` file is a ZIP archive of XML parts, so the reader
+has three custom layers plus one first-party layer:
 
-- CFB (Compound File Binary) container: header, FAT, directory, `Workbook` stream
-  reassembly (including mini-stream for small files).
-- BIFF8 records: `BOF`, `BoundSheet8`, `SST`/`Continue`, `LabelSst`, `Label`, `Number`,
-  `RK`, `MulRk`, `Blank`, `Formula` (cached numeric result + `String` follow record),
-  `EOF`. Unknown records are skipped by length — the format is length-prefixed, so a
-  subset reader is safe.
-- String decoding: BIFF8 unicode strings (compressed 8-bit and UTF-16LE variants,
-  including continuation across `Continue` records).
-- Output: first worksheet as `[[XLSCellValue]]` (string/number/empty) plus the header
-  row, which is all ingestion needs.
+- **ZIP container** (`ZIPArchive`): parse the End of Central Directory record, the central
+  directory entries, and local file headers; extract the bytes of the needed parts
+  (`xl/sharedStrings.xml`, `xl/workbook.xml` + its `.rels`, and the first worksheet
+  `xl/worksheets/sheet1.xml`). Handles stored (method 0) and deflated (method 8) entries.
+- **DEFLATE inflate** (`Inflate`): a custom RFC 1951 inflate decoder (fixed + dynamic
+  Huffman) to decompress method-8 entries — keeps the backend dependency-free.
+- **SpreadsheetML reading** (`SpreadsheetML`): parse `sharedStrings.xml` and the
+  worksheet `sheetData` using Foundation's event-based `XMLParser` (first-party). Resolve
+  cells: shared-string (`t="s"` → index into the string table), inline string
+  (`t="inlineStr"`/`t="str"`), boolean (`t="b"`), and numbers (default). Honor the `r`
+  cell reference so gaps/blank cells map to the correct columns.
+- **Output**: first worksheet as `[[XLSXCellValue]]` (string/number/empty) plus the
+  header row, which is all ingestion needs.
 
-**Rationale**: Constitution Principle V mandates custom-first. The BIFF8 subset above is
-well documented (MS-XLS spec), bounded, and fully unit-testable with small fixture files.
-No maintained first-party Swift option exists.
+**Rationale**: Constitution Principle V mandates custom-first. OOXML is ZIP + XML, and
+Foundation already provides `XMLParser` (first-party), so only ZIP parsing and DEFLATE
+inflate need custom code — both are tightly bounded, well-specified (PKZIP APPNOTE,
+RFC 1951), and fully unit-testable with small fixture files and known inflate test
+vectors. No maintained first-party Swift `.xlsx` parser exists.
 
 **Alternatives considered**:
-- `libxls` (C library via SPM system target): third-party, C interop, unmaintained
-  periods, security advisories — rejected.
-- `CoreXLSX`: parses `.xlsx` (OOXML) only, not legacy `.xls` — not applicable.
-- Converting the file to CSV/XLSX out-of-band: violates FR-001 (the system must accept
-  `.xls`) and adds a manual step — rejected.
+- `CoreXLSX` (third-party SPM package): parses `.xlsx` but pulls in `ZIPFoundation` and
+  `XMLCoder` — multiple third-party dependencies for what is a bounded custom job;
+  rejected per Principle V.
+- System `zlib` via a `systemLibrary` SPM target: would remove the custom inflate, but
+  adds a declared package dependency and a C-interop module map; custom inflate keeps the
+  Package.swift dependency list to the justified Vapor/Fluent family only — rejected.
+- Apple's `Compression` framework (`COMPRESSION_ZLIB`): first-party but Apple-platform
+  only, so it cannot be unit-tested on a Linux CI runner and ties the reader to the host
+  OS — rejected in favor of portable custom inflate.
 
-**Risk & mitigation**: BIFF8 has many record types; risk of fixture files using
-unhandled records. Mitigated by skip-by-length design, fixture tests generated from the
-real `Retribuciones.xls`, and a clear `XLSError` taxonomy so unreadable files fail whole
-(FR-004) instead of corrupting data.
+**Risk & mitigation**: (a) Dynamic-Huffman inflate is the trickiest custom piece — covered
+by RFC 1951 test vectors plus round-trip fixtures generated from the real
+`Retribuciones.xlsx`. (b) Dates in extra columns are stored as serial numbers with a style
+reference; for the MVP these non-mandatory values are preserved as their numeric/string
+cell content and shown as-is in detail (no `styles.xml` number-format resolution this
+increment) — noted as a known limitation. (c) A clear `XLSXError` taxonomy makes
+unreadable/corrupt archives fail whole (FR-004) instead of corrupting data.
 
 ## R2. Persistence: PostgreSQL access layer
 
@@ -59,7 +72,7 @@ dependency family. Recorded in the plan's Complexity Tracking per Principle V.
 
 **Decision**: `POST /api/v1/admin/ingest` triggers ingestion. The server reads the file
 from a configured filesystem path (`INGEST_FILE_PATH` env var), defaulting to
-`Retribuciones.xls` at the repository root. The endpoint responds with the full
+`Retribuciones.xlsx` at the repository root. The endpoint responds with the full
 ingestion report (FR-003). An `actor`-guarded flag rejects concurrent ingestions with
 `409 INGESTION_IN_PROGRESS`.
 
@@ -157,7 +170,7 @@ Swift-6 guidance.
 
 **Rationale**: Mandated by the user and the constitution's Technology Stack section.
 
-## R10. Column mapping for `Retribuciones.xls`
+## R10. Column mapping for `Retribuciones.xlsx`
 
 **Decision**: Header-driven mapping with normalization (trim, lowercase, strip accents,
 collapse spaces). Mandatory columns matched via alias sets:
@@ -180,7 +193,7 @@ schema churn — extra columns never require migrations.
 ## R11. Testing stacks & TDD mechanics
 
 **Decision**:
-- Backend: `XCTest` + `XCTVapor`. Unit tests for `XLSReader` (fixture .xls files
+- Backend: `XCTest` + `XCTVapor`. Unit tests for `XLSXReader` (fixture .xlsx files
   committed under `Tests/.../Fixtures/`), the column mapper, and validators. Integration
   tests for every endpoint against a dedicated test database
   (`cuanto_cobran_test`, migrated/reset per run). Contract tests assert response JSON

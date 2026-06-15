@@ -9,7 +9,7 @@ End-to-end validation guide for `001-mvp-consulta-sueldos`. Contracts:
 - macOS with Xcode 16+ (Swift 6.1 toolchain) and an iOS 15+ simulator
 - PostgreSQL 16 running locally (`brew install postgresql@16` or Docker)
 - JDK 17 and Android Studio (or an Android emulator, API 24+)
-- `Retribuciones.xls` present at the repository root
+- `Retribuciones.xlsx` present at the repository root
 
 ## 1. Database setup
 
@@ -46,7 +46,7 @@ dataset atomically and bumps `ingestedAt` (FR-005/FR-006). Budget: ≤ 30 s for 
 
 Failure checks:
 - Rename the file away → `404 FILE_NOT_FOUND`, previous dataset still served.
-- Point `INGEST_FILE_PATH` at a non-xls file → `422 INVALID_FILE`, previous dataset
+- Point `INGEST_FILE_PATH` at a non-xlsx file → `422 INVALID_FILE`, previous dataset
   still served (FR-004).
 
 ## 4. Verify the API
@@ -92,7 +92,7 @@ Expected on both platforms (UI in Spanish):
 ## 6. Run the test suites (TDD gate)
 
 ```bash
-# Backend: XLSReader unit tests, mapper/validator tests, endpoint integration tests,
+# Backend: XLSXReader unit tests, mapper/validator tests, endpoint integration tests,
 # contract tests against contracts/openapi.yaml fixtures
 cd backend/vapor-server && swift test
 

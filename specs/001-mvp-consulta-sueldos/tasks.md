@@ -75,7 +75,7 @@ description: "Task list for MVP Consulta de Sueldos"
 
 ## Phase 3: User Story 1 - Publish salary data from a spreadsheet (Priority: P1) 🎯 MVP
 
-**Goal**: Ingest `Retribuciones.xls` into PostgreSQL with per-row validation and atomic dataset replacement, then serve the published records (list + detail) over the API.
+**Goal**: Ingest `Retribuciones.xlsx` into PostgreSQL with per-row validation and atomic dataset replacement, then serve the published records (list + detail) over the API.
 
 **Independent Test**: With the server running and Postgres available, `POST /api/v1/admin/ingest` returns a report where `recordsPublished + rejectedRows.length == rowsRead`; then `GET /api/v1/salaries` lists the records and `GET /api/v1/salaries/{id}` returns one record's full fields; an unknown id returns 404 `RECORD_NOT_AVAILABLE`.
 
@@ -83,7 +83,7 @@ description: "Task list for MVP Consulta de Sueldos"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation.**
 
-- [ ] T021 [P] [US1] XLSReader unit tests against committed fixture `.xls` files in `backend/vapor-server/Tests/AppTests/Unit/XLSReaderTests.swift` (CFB container, SST/shared strings, Number/RK/Label cells, continuation records, malformed-file error)
+- [ ] T021 [P] [US1] XLSXReader unit tests against committed fixture `.xlsx` files in `backend/vapor-server/Tests/AppTests/Unit/XLSXReaderTests.swift` (ZIP central-directory parsing, RFC 1951 inflate against known vectors, shared-string vs inline vs number cells, cell-reference column mapping with gaps, malformed-archive error)
 - [ ] T022 [P] [US1] ColumnMapper unit tests in `backend/vapor-server/Tests/AppTests/Unit/ColumnMapperTests.swift` (header normalization, alias matching for cargo/organismo/retribución, missing-required-column → `MISSING_REQUIRED_COLUMNS`, extra columns preserved in order)
 - [ ] T023 [P] [US1] RowValidator unit tests in `backend/vapor-server/Tests/AppTests/Unit/RowValidatorTests.swift` (mandatory-field presence, Spanish numeric parsing `70.508,52`, `MISSING_MANDATORY_FIELD` / `INVALID_SALARY_AMOUNT`, duplicate-row flagging)
 - [ ] T024 [US1] IngestionService integration test in `backend/vapor-server/Tests/AppTests/Integration/IngestionServiceTests.swift` (atomic replace: second ingest supersedes the first; partial failure leaves prior dataset intact; report counts satisfy `published + rejected == rowsRead`)
@@ -93,10 +93,13 @@ description: "Task list for MVP Consulta de Sueldos"
 
 ### Implementation for User Story 1
 
-- [ ] T028 [P] [US1] Implement the CFB (Compound File Binary) container reader in `backend/vapor-server/Sources/App/XLSReader/CFBContainer.swift` (header, FAT, directory, Workbook stream + mini-stream reassembly)
-- [ ] T029 [P] [US1] Implement BIFF record framing (skip-unknown-by-length) in `backend/vapor-server/Sources/App/XLSReader/BIFFRecord.swift`
-- [ ] T030 [US1] Implement BIFF8 string/SST decoding (compressed 8-bit + UTF-16LE, `Continue` continuation) in `backend/vapor-server/Sources/App/XLSReader/BIFFStrings.swift` (depends on T029)
-- [ ] T031 [US1] Implement the public `XLSWorkbook` API returning the first sheet as rows of `XLSCellValue` in `backend/vapor-server/Sources/App/XLSReader/XLSWorkbook.swift` (depends on T028, T029, T030)
+- [ ] T028 [P] [US1] Implement the ZIP container reader in `backend/vapor-server/Sources/App/XLSXReader/ZIPArchive.swift` (End of Central Directory + central directory + local file headers; extract entry bytes for stored method 0 and deflated method 8)
+- [ ] T029 [P] [US1] Implement the custom RFC 1951 DEFLATE inflate decoder (fixed + dynamic Huffman) in `backend/vapor-server/Sources/App/XLSXReader/Inflate.swift`
+- [ ] T030 [US1] Implement SpreadsheetML reading (sharedStrings.xml + first worksheet sheetData via Foundation `XMLParser`; resolve shared/inline/number/boolean cells honoring the `r` cell reference) in `backend/vapor-server/Sources/App/XLSXReader/SpreadsheetML.swift` (depends on T028, T029)
+- [ ] T031 [US1] Implement the public `XLSXWorkbook` API returning the first sheet as rows of `XLSXCellValue` plus the header row in `backend/vapor-server/Sources/App/XLSXReader/XLSXWorkbook.swift` (depends on T028, T029, T030)
+
+> Note: the `IngestionService` (T039) consumes `XLSXWorkbook` rows; `ColumnMapper`/`RowValidator` operate on the parsed rows and are format-agnostic.
+
 - [ ] T032 [P] [US1] Implement the `Dataset` Fluent model in `backend/vapor-server/Sources/App/Models/Dataset.swift` (id, ingested_at, status, source_file, rows_read)
 - [ ] T033 [P] [US1] Implement the `SalaryRecord` Fluent model in `backend/vapor-server/Sources/App/Models/SalaryRecord.swift` (FK dataset_id, position_title, institution, salary_amount numeric(12,2), source_row_number, extra_fields JSONB ordered label/value array)
 - [ ] T034 [US1] Implement migrations in `backend/vapor-server/Sources/App/Migrations/CreateDatasetAndSalaryRecord.swift` (tables, FK cascade, partial unique index on `status = 'active'`, index on `dataset_id`) and register in configure.swift
@@ -106,7 +109,7 @@ description: "Task list for MVP Consulta de Sueldos"
 - [ ] T038 [US1] Implement the protocol-wrapped repository in `backend/vapor-server/Sources/App/Repositories/SalaryRepository.swift` (active dataset query, list, find-by-id, transactional replace) so domain code never imports Fluent directly
 - [ ] T039 [US1] Implement `IngestionService` in `backend/vapor-server/Sources/App/Ingestion/IngestionService.swift` — parse whole file → validate rows → single transaction inserting new active dataset + records and superseding the previous; `actor`-guarded in-progress flag (409 on concurrent); post-commit cleanup of superseded datasets (depends on T031, T034, T035, T036, T037, T038)
 - [ ] T040 [US1] Implement `SalariesController` (`GET /api/v1/salaries`, `GET /api/v1/salaries/{id}` with 404 mapping) in `backend/vapor-server/Sources/App/Controllers/SalariesController.swift` (depends on T038)
-- [ ] T041 [US1] Implement `AdminController` (`POST /api/v1/admin/ingest`, reads `INGEST_FILE_PATH` default repo-root `Retribuciones.xls`, 404 when missing) in `backend/vapor-server/Sources/App/Controllers/AdminController.swift` (depends on T039)
+- [ ] T041 [US1] Implement `AdminController` (`POST /api/v1/admin/ingest`, reads `INGEST_FILE_PATH` default repo-root `Retribuciones.xlsx`, 404 when missing) in `backend/vapor-server/Sources/App/Controllers/AdminController.swift` (depends on T039)
 - [ ] T042 [US1] Implement `GET /api/v1/health` and register all routes in `backend/vapor-server/Sources/App/routes.swift` (depends on T040, T041)
 
 **Checkpoint**: US1 is independently testable — ingest the file and query list/detail entirely from the backend (the MVP backend slice).
@@ -201,7 +204,7 @@ description: "Task list for MVP Consulta de Sueldos"
 ### Within Each User Story
 
 - Tests are written and MUST FAIL before implementation (TDD — NON-NEGOTIABLE)
-- Backend: XLSReader/models/mapper/validator → repository → service → controllers → routes
+- Backend: XLSXReader/models/mapper/validator → repository → service → controllers → routes
 - Client: domain → DTOs → api → state holder → screen → navigation wiring
 - Story complete before moving to the next priority
 
@@ -221,7 +224,7 @@ description: "Task list for MVP Consulta de Sueldos"
 ### MVP First (User Story 1 only)
 
 1. Phase 1 Setup → 2. Phase 2 Foundational (backend portion at minimum) → 3. Phase 3 US1
-4. **STOP and VALIDATE**: ingest `Retribuciones.xls`, query list + detail via curl per quickstart.md
+4. **STOP and VALIDATE**: ingest `Retribuciones.xlsx`, query list + detail via curl per quickstart.md
 5. This backend slice is the deployable MVP foundation.
 
 ### Incremental Delivery

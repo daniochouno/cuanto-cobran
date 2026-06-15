@@ -7,7 +7,7 @@ the client consumes API DTOs only and persists nothing.
 
 ## Entity: Dataset
 
-One successful ingestion of `Retribuciones.xls`. Exactly one dataset is `active` at any
+One successful ingestion of `Retribuciones.xlsx`. Exactly one dataset is `active` at any
 time; it is the only one consumers can see.
 
 **Table**: `datasets`

@@ -8,13 +8,13 @@
 
 ## Summary
 
-Ingest the official `Retribuciones.xls` (repository root) into a local PostgreSQL
+Ingest the official `Retribuciones.xlsx` (repository root) into a local PostgreSQL
 database through a Vapor (Swift 6, strict concurrency) server exposing a small versioned
 API — trigger ingestion, list records, record detail — with atomic replace-on-ingest
 semantics. A Kotlin Multiplatform app with shared Compose Multiplatform UI (Android +
 iOS, Spanish-only UI) consumes the API: a list screen with the key fields (cargo,
 organismo, retribución) and a detail screen with every ingested field. Custom-first
-throughout: a purpose-built BIFF8 `.xls` reader in Swift and a custom `expect/actual`
+throughout: a purpose-built OOXML `.xlsx` reader in Swift and a custom `expect/actual`
 HTTP client in Kotlin; the only third-party dependencies are Vapor-org persistence
 packages (justified below).
 
@@ -30,7 +30,7 @@ kotlinx.coroutines (all first-party per constitution); custom HTTP client (no Kt
 **Storage**: PostgreSQL 16, local instance. Tables `datasets` + `salary_records`
 (JSONB for extra columns). See [data-model.md](data-model.md).
 
-**Testing**: Backend: XCTest + XCTVapor (unit: XLSReader/mapper/validators; integration:
+**Testing**: Backend: XCTest + XCTVapor (unit: XLSXReader/mapper/validators; integration:
 all endpoints on `cuanto_cobran_test`; contract: fixtures pinned to
 [contracts/openapi.yaml](contracts/openapi.yaml)). Client: kotlin.test in `commonTest`
 (DTOs from shared contract fixtures, state holders, navigation), platform smoke tests.
@@ -46,7 +46,7 @@ Android minSdk 24 / targetSdk 35, iOS 15.0+.
 
 **Constraints**: Swift strict concurrency (warnings = errors); UI language Spanish with
 centralized strings; atomic dataset replacement (consumers never see partial data);
-input file fixed at repo root `Retribuciones.xls` (overridable via `INGEST_FILE_PATH`);
+input file fixed at repo root `Retribuciones.xlsx` (overridable via `INGEST_FILE_PATH`);
 no authentication (local trusted operator — public exposure out of scope); offline app
 shows explicit error/retry states.
 
@@ -63,7 +63,7 @@ at a time, no history; 2 app screens; 4 API endpoints.
 | II. TDD (NON-NEGOTIABLE) | Tests precede code for every component; contract tests at API boundary; integration tests per endpoint; common-source-set tests for shared Kotlin | ✅ PASS — test strategy in [research.md R11](research.md); shared JSON fixtures pin both stacks to the contract |
 | III. UX Consistency | All UI in shared Compose; single design-system file; source/last-updated visible on list & detail; explicit loading/empty/error states; centralized Spanish strings | ✅ PASS — FR-011/FR-012 map directly; `Strings.es` + `Theme.kt` in commonMain ([research.md R7–R8](research.md)) |
 | IV. Performance | Budgets stated and measurable: <200 ms p95 API, ≤30 s/10k ingest, <2 s app start, 60 fps, <500 ms search (n/a — no search this increment); measurement via integration perf test + manual profile per [quickstart.md](quickstart.md) | ✅ PASS |
-| V. Minimal Dependencies, Custom-First | Custom BIFF8 .xls reader (R1); custom HTTP client (R5); custom navigation/state (R7); only third-party: Fluent + FluentPostgresDriver, justified in Complexity Tracking and wrapped behind repository protocols | ✅ PASS |
+| V. Minimal Dependencies, Custom-First | Custom OOXML .xlsx reader (R1: custom ZIP + RFC 1951 inflate, XML via first-party Foundation XMLParser); custom HTTP client (R5); custom navigation/state (R7); only third-party: Fluent + FluentPostgresDriver, justified in Complexity Tracking and wrapped behind repository protocols | ✅ PASS |
 | Tech Stack & Constraints | KMP + Compose MP app / Vapor backend split; strict concurrency on; versioned API only boundary; repo layout per README | ✅ PASS |
 
 **Post-Phase-1 re-check**: design artifacts (data-model, contracts, quickstart) introduce
@@ -87,7 +87,7 @@ specs/001-mvp-consulta-sueldos/
 ### Source Code (repository root)
 
 ```text
-Retribuciones.xls                     # Input file (repo root, per user requirement)
+Retribuciones.xlsx                    # Input file (repo root, per user requirement)
 
 backend/
 └── vapor-server/
@@ -95,11 +95,11 @@ backend/
     ├── Sources/App/
     │   ├── entrypoint.swift
     │   ├── configure.swift           # DB config, migrations, routes registration
-    │   ├── XLSReader/                # Custom BIFF8 .xls reader (R1) — no Vapor imports
-    │   │   ├── CFBContainer.swift    # Compound File Binary parsing
-    │   │   ├── BIFFRecord.swift      # Record framing + skip-by-length
-    │   │   ├── BIFFStrings.swift     # SST / unicode string decoding
-    │   │   └── XLSWorkbook.swift     # Public API: rows of XLSCellValue
+    │   ├── XLSXReader/               # Custom OOXML .xlsx reader (R1) — no Vapor imports
+    │   │   ├── ZIPArchive.swift      # ZIP container: central dir + entry extraction
+    │   │   ├── Inflate.swift         # Custom RFC 1951 DEFLATE inflate
+    │   │   ├── SpreadsheetML.swift   # sharedStrings + worksheet via Foundation XMLParser
+    │   │   └── XLSXWorkbook.swift    # Public API: rows of XLSXCellValue
     │   ├── Ingestion/
     │   │   ├── ColumnMapper.swift    # Header normalization + alias mapping (R10)
     │   │   ├── RowValidator.swift    # Mandatory fields, Spanish number parsing
@@ -112,10 +112,10 @@ backend/
     │       ├── SalariesController.swift   # GET list / GET detail
     │       └── AdminController.swift      # POST ingest
     └── Tests/AppTests/
-        ├── Unit/                     # XLSReader, ColumnMapper, RowValidator
+        ├── Unit/                     # XLSXReader, ColumnMapper, RowValidator
         ├── Integration/              # Endpoints against cuanto_cobran_test
         ├── Contract/                 # Response shape vs contracts/ fixtures
-        └── Fixtures/                 # Sample .xls files + canned JSON
+        └── Fixtures/                 # Sample .xlsx files + canned JSON
 
 app/
 ├── settings.gradle.kts
@@ -149,7 +149,7 @@ app/
 section and README: `backend/vapor-server` (Vapor API + ingestion) and `app/` (KMP:
 `shared` for domain/data/state, `composeApp` for all UI, `iosApp` as the thin Xcode
 entry wrapper — an addition to the README sketch required to build for iOS). The
-`XLSReader` module stays Vapor-free so it is unit-testable in isolation and reusable.
+`XLSXReader` module stays Vapor-free so it is unit-testable in isolation and reusable.
 
 ## Complexity Tracking
 

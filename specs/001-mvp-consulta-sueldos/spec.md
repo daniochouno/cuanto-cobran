@@ -12,7 +12,7 @@
 
 ### User Story 1 - Publish salary data from a spreadsheet (Priority: P1)
 
-A data manager has an official spreadsheet (.xls) containing public salary records (one
+A data manager has an official spreadsheet (.xlsx) containing public salary records (one
 row per public position). They submit the file to the system, which parses and validates
 it and makes every valid record available for consultation. From that moment, anyone
 querying the published data sees the content of that spreadsheet.
@@ -22,20 +22,20 @@ story alone produces a verifiable, queryable dataset and is the foundation every
 story consumes.
 
 **Independent Test**: Can be fully tested without the mobile app by submitting a sample
-.xls file and then retrieving the published records (list and individual record) through
+.xlsx file and then retrieving the published records (list and individual record) through
 the system's consultation interface, verifying the returned content matches the
 spreadsheet rows.
 
 **Acceptance Scenarios**:
 
 1. **Given** a running system with no published data, **When** the data manager submits a
-   well-formed .xls file with N valid rows, **Then** the system confirms the ingestion,
+   well-formed .xlsx file with N valid rows, **Then** the system confirms the ingestion,
    reports N records published, and all N records are retrievable.
 2. **Given** a submitted file where some rows are missing mandatory values, **When**
    ingestion completes, **Then** valid rows are published, invalid rows are excluded, and
    the ingestion result reports how many rows were accepted and how many were rejected
    (with row numbers and reasons).
-3. **Given** a file that is not a readable .xls spreadsheet, **When** the data manager
+3. **Given** a file that is not a readable .xlsx spreadsheet, **When** the data manager
    submits it, **Then** the system rejects the whole submission with a clear error and
    the previously published dataset (if any) remains unchanged.
 4. **Given** a dataset already published, **When** the data manager submits a new valid
@@ -124,14 +124,14 @@ values and labels.
 
 ### Functional Requirements
 
-- **FR-001**: System MUST accept submission of a spreadsheet file in .xls format
+- **FR-001**: System MUST accept submission of a spreadsheet file in .xlsx format
   containing public salary records, one record per row with a header row.
 - **FR-002**: System MUST validate each row during ingestion; rows missing mandatory
   fields (position title, institution, salary amount) or containing unparseable values
   MUST be rejected without blocking the ingestion of valid rows.
 - **FR-003**: System MUST return an ingestion result reporting total rows read, records
   published, and rejected rows with row numbers and rejection reasons.
-- **FR-004**: System MUST reject files that are not readable .xls spreadsheets with a
+- **FR-004**: System MUST reject files that are not readable .xlsx spreadsheets with a
   clear error, leaving any previously published dataset untouched.
 - **FR-005**: Each successful ingestion MUST atomically replace the entire previously
   published dataset; consumers MUST never observe a partially replaced dataset.
@@ -167,7 +167,7 @@ values and labels.
 
 ### Measurable Outcomes
 
-- **SC-001**: A data manager can go from having a valid .xls file to seeing its records
+- **SC-001**: A data manager can go from having a valid .xlsx file to seeing its records
   publicly consultable in under 5 minutes, in a single submission step.
 - **SC-002**: Ingestion of a file with up to 10,000 rows completes and reports its result
   in under 30 seconds.

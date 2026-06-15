@@ -3,7 +3,7 @@ info:
   title: Cuánto Cobran API
   description: >
     Public salary consultation API. Serves the single active dataset ingested from
-    Retribuciones.xls. Local deployment only in this increment (no authentication).
+    Retribuciones.xlsx. Local deployment only in this increment (no authentication).
   version: 1.0.0
 servers:
   - url: http://127.0.0.1:8080
@@ -73,10 +73,10 @@ paths:
   /api/v1/admin/ingest:
     post:
       operationId: ingest
-      summary: Ingest Retribuciones.xls and atomically replace the published dataset
+      summary: Ingest Retribuciones.xlsx and atomically replace the published dataset
       description: >
-        Reads the .xls file from the server-configured path (INGEST_FILE_PATH, default:
-        repository-root/Retribuciones.xls), validates rows, and atomically replaces the
+        Reads the .xlsx file from the server-configured path (INGEST_FILE_PATH, default:
+        repository-root/Retribuciones.xlsx), validates rows, and atomically replaces the
         active dataset (FR-001, FR-005). No authentication — local trusted operator only.
       responses:
         "200":
@@ -93,7 +93,7 @@ paths:
                 $ref: "#/components/schemas/ApiError"
               example:
                 code: FILE_NOT_FOUND
-                message: No se encontró Retribuciones.xls en la ruta configurada.
+                message: No se encontró Retribuciones.xlsx en la ruta configurada.
         "409":
           description: Another ingestion is already running
           content:
@@ -105,7 +105,7 @@ paths:
                 message: Ya hay una ingesta en curso.
         "422":
           description: >
-            File is not a readable .xls, or mandatory columns are missing. The
+            File is not a readable .xlsx, or mandatory columns are missing. The
             previously published dataset remains unchanged (FR-004).
           content:
             application/json:
@@ -115,7 +115,7 @@ paths:
                 unreadable:
                   value:
                     code: INVALID_FILE
-                    message: El archivo no es un .xls legible.
+                    message: El archivo no es un .xlsx legible.
                 missingColumns:
                   value:
                     code: MISSING_REQUIRED_COLUMNS
